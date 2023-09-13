@@ -1,0 +1,68 @@
+const express = require("express");
+
+const router = express.Router();
+const movie = require("../schemas/moviesSchema");
+const logger = require("../logger.js");
+
+// for test
+const movies =[];
+
+router.get('/',async (req,res)=>{
+    const movies  = await movie.find({});
+    res.send(movies);
+})
+
+router.post('/',(req,res)=>{
+    const body = req.body;
+    if(body.title && body.description && body.rate){
+        if(typeof body.title == 'string' && typeof body.description == 'string' && typeof body.rate == 'number'){
+            const newMovie = new movie({
+                title : body.title,
+                description : body.description,
+                rate : body.rate,
+            });
+            newMovie.save();
+            res.send(newMovie);
+        }
+    }
+    else{
+        res.send('err: invalid movie body');
+        return;
+    }
+});
+
+router.put('/:id' ,async (req,res) =>{
+    const id  = req.params.id;
+    const body = req.body;
+
+    if(!id){
+        res.send('err: movie not found');
+        return;
+    }
+    else{
+        if(body.title && body.description && body.rate){
+            if(typeof body.title == 'string' && typeof body.description == 'string' 
+            && typeof body.rate == 'number'){
+        const updatedMovie = await movie.findOneAndUpdate({_id : id},{...body},{new : true});
+        res.send(updatedMovie);
+            }
+        }
+        else{
+            res.send('err: invalid movie body');
+            return;
+        }
+    }
+});
+
+router.delete('/:id',async (req,res)=>{
+    const id  = req.params.id;
+    if(!id){
+        res.send('err: movie not found');
+        return;
+    }
+    else{
+        const result = await movie.findOneAndDelete({_id : id}); 
+        res.send(result);
+    }
+})
+module.exports = router ;
